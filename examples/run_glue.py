@@ -32,37 +32,37 @@ from tqdm import tqdm, trange
 from transformers import (
     WEIGHTS_NAME,
     AdamW,
-    AlbertConfig,
-    AlbertForSequenceClassification,
-    AlbertTokenizer,
-    BertConfig,
-    BertForSequenceClassification,
-    BertTokenizer,
-    DistilBertConfig,
-    DistilBertForSequenceClassification,
-    DistilBertTokenizer,
-    FlaubertConfig,
-    FlaubertForSequenceClassification,
-    FlaubertTokenizer,
+    # AlbertConfig,
+    # AlbertForSequenceClassification,
+    # AlbertTokenizer,
+    # BertConfig,
+    # BertForSequenceClassification,
+    # BertTokenizer,
+    # DistilBertConfig,
+    # DistilBertForSequenceClassification,
+    # DistilBertTokenizer,
+    # FlaubertConfig,
+    # FlaubertForSequenceClassification,
+    # FlaubertTokenizer,
     RobertaConfig,
     RobertaForSequenceClassification,
     RobertaTokenizer,
-    XLMConfig,
-    XLMForSequenceClassification,
-    XLMRobertaConfig,
-    XLMRobertaForSequenceClassification,
-    XLMRobertaTokenizer,
-    XLMTokenizer,
-    XLNetConfig,
-    XLNetForSequenceClassification,
-    XLNetTokenizer,
-    get_linear_schedule_with_warmup,
+    # XLMConfig,
+    # XLMForSequenceClassification,
+    # XLMRobertaConfig,
+    # XLMRobertaForSequenceClassification,
+    # XLMRobertaTokenizer,
+    # XLMTokenizer,
+    # XLNetConfig,
+    # XLNetForSequenceClassification,
+    # XLNetTokenizer,
+    # get_linear_schedule_with_warmup,
 )
 from transformers import glue_compute_metrics as compute_metrics
 from transformers import glue_convert_examples_to_features as convert_examples_to_features
 from transformers import glue_output_modes as output_modes
 from transformers import glue_processors as processors
-
+# from transformers.optimization import get_linear_schedule_with_warmup
 
 try:
     from torch.utils.tensorboard import SummaryWriter
@@ -76,29 +76,43 @@ ALL_MODELS = sum(
     (
         tuple(conf.pretrained_config_archive_map.keys())
         for conf in (
-            BertConfig,
-            XLNetConfig,
-            XLMConfig,
+            #BertConfig,
+            #XLNetConfig,
+            #XLMConfig,
             RobertaConfig,
-            DistilBertConfig,
-            AlbertConfig,
-            XLMRobertaConfig,
-            FlaubertConfig,
+            #DistilBertConfig,
+            #AlbertConfig,
+            #XLMRobertaConfig,
+            #FlaubertConfig,
         )
     ),
     (),
 )
 
 MODEL_CLASSES = {
-    "bert": (BertConfig, BertForSequenceClassification, BertTokenizer),
-    "xlnet": (XLNetConfig, XLNetForSequenceClassification, XLNetTokenizer),
-    "xlm": (XLMConfig, XLMForSequenceClassification, XLMTokenizer),
+    #"bert": (BertConfig, BertForSequenceClassification, BertTokenizer),
+   # "xlnet": (XLNetConfig, XLNetForSequenceClassification, XLNetTokenizer),
+   # "xlm": (XLMConfig, XLMForSequenceClassification, XLMTokenizer),
     "roberta": (RobertaConfig, RobertaForSequenceClassification, RobertaTokenizer),
-    "distilbert": (DistilBertConfig, DistilBertForSequenceClassification, DistilBertTokenizer),
-    "albert": (AlbertConfig, AlbertForSequenceClassification, AlbertTokenizer),
-    "xlmroberta": (XLMRobertaConfig, XLMRobertaForSequenceClassification, XLMRobertaTokenizer),
-    "flaubert": (FlaubertConfig, FlaubertForSequenceClassification, FlaubertTokenizer),
+   # "distilbert": (DistilBertConfig, DistilBertForSequenceClassification, DistilBertTokenizer),
+   # "albert": (AlbertConfig, AlbertForSequenceClassification, AlbertTokenizer),
+   # "xlmroberta": (XLMRobertaConfig, XLMRobertaForSequenceClassification, XLMRobertaTokenizer),
+   # "flaubert": (FlaubertConfig, FlaubertForSequenceClassification, FlaubertTokenizer),
 }
+
+def get_linear_schedule_with_warmup(optimizer, num_warmup_steps, num_training_steps, last_epoch=-1):
+    """ Create a schedule with a learning rate that decreases linearly after
+    linearly increasing during a warmup period.
+    """
+
+    def lr_lambda(current_step):
+        if current_step < num_warmup_steps:
+            return float(current_step) / float(max(1, num_warmup_steps))
+        return max(
+            0.0, float(num_training_steps - current_step) / float(max(1, num_training_steps - num_warmup_steps))
+        )
+
+    return LambdaLR(optimizer, lr_lambda, last_epoch)
 
 
 def set_seed(args):
