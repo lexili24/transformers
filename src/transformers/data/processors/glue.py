@@ -529,11 +529,11 @@ class BoolQProcessor(DataProcessor):
 
     def get_train_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
+        return self._create_examples(self._read_json(os.path.join(data_dir, "train.jsonl")), "train")
 
     def get_dev_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
+        return self._create_examples(self._read_json(os.path.join(data_dir, "val.jsonl")), "dev")
 
     def get_labels(self):
         """See base class."""
@@ -548,9 +548,9 @@ class BoolQProcessor(DataProcessor):
             guid = "%s-%s" % (set_type, line[2])
             text_a = line[0]
             text_b = line[1]
-            label = line[-1]
+            label = str(line[-1])
             examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
-       return examples
+        return examples
 
 glue_tasks_num_labels = {
     "cola": 2,
