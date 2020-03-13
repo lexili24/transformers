@@ -18,6 +18,7 @@ import copy
 import csv
 import json
 import logging
+import pandas as pd
 
 from ...file_utils import is_tf_available, is_torch_available
 
@@ -126,6 +127,11 @@ class DataProcessor(object):
         with open(input_file, "r", encoding="utf-8-sig") as f:
             return list(csv.reader(f, delimiter="\t", quotechar=quotechar))
 
+    @classmethod
+    def _read_json(self, input_file):
+        with open(input_file, ) as f:
+            df = pd.read_json(f, lines = True)
+        return df.values.tolist()
 
 class SingleSentenceClassificationProcessor(DataProcessor):
     """ Generic processor for a single sentence classification data set."""
