@@ -76,8 +76,6 @@ if _has_sklearn:
             return {"acc": simple_accuracy(preds, labels)}
         elif task_name == 'boolq':
             return {"acc": simple_accuracy(preds, labels)}
-        elif task_name == 'boolq':
-            return {"acc": simple_accuracy(preds, labels)}
         else:
             raise KeyError(task_name)
 
