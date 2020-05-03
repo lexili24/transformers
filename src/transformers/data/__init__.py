@@ -2,6 +2,8 @@
 # There's no way to ignore "F401 '...' imported but unused" warnings in this
 # module, but to preserve other warnings. So, don't check this module at all.
 
+### changes were made to reflect SuperGLUE benchamarking
+
 from .metrics import is_sklearn_available
 from .processors import (
     DataProcessor,
@@ -20,6 +22,15 @@ from .processors import (
     xnli_output_modes,
     xnli_processors,
     xnli_tasks_num_labels,
+    ## add on
+    superglue_convert_examples_to_features,
+    superglue_output_modes,
+    superglue_processors,
+    superglue_tasks_num_labels,
+    COPAInputExample,
+    WiCInputExample,
+    WSCInputExample,
+    InputFeatures_w,
 )
 
 

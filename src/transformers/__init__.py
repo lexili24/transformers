@@ -8,6 +8,9 @@ __version__ = "2.5.1"
 # default Python logging output behavior when present.
 # see: https://github.com/abseil/abseil-py/issues/99
 # and: https://github.com/tensorflow/tensorflow/issues/26691#issuecomment-500369493
+
+### Changs were made to reflect superglue benchmarking 
+
 try:
     import absl.logging
 except ImportError:
@@ -57,6 +60,15 @@ from .data import (
     xnli_output_modes,
     xnli_processors,
     xnli_tasks_num_labels,
+    ### add on May 2020
+    superglue_convert_examples_to_features,
+    superglue_output_modes,
+    superglue_processors,
+    superglue_tasks_num_labels,
+    WiCInputExample,
+    WSCInputExample,
+    COPAInputExample, 
+    InputFeatures_w, 
 )
 
 # Files and general utilities

@@ -18,6 +18,8 @@ import copy
 import csv
 import json
 import logging
+import random
+import pandas as pd
 
 from ...file_utils import is_tf_available, is_torch_available
 
@@ -43,6 +45,108 @@ class InputExample(object):
         self.guid = guid
         self.text_a = text_a
         self.text_b = text_b
+        self.label = label
+
+    def __repr__(self):
+        return str(self.to_json_string())
+
+    def to_dict(self):
+        """Serializes this instance to a Python dictionary."""
+        output = copy.deepcopy(self.__dict__)
+        return output
+
+    def to_json_string(self):
+        """Serializes this instance to a JSON string."""
+        return json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n"
+
+class COPAInputExample(object):
+    """
+    A single training/test example for SuperGLUE COPA task.
+
+    Args:
+        guid: Unique id for the example.
+        text_pre: string. The premise of the question.
+        text_a: String. First choice to the question. 
+        text_b: String. Second choice to the question.
+        question: question.
+        label: string. The label of the example. This should be
+            specified for train and dev examples, but not for test examples.
+    """
+
+    def __init__(self, guid, text_pre, text_a, text_b, question, label):
+        self.guid = guid
+        self.text_pre = text_pre
+        self.text_a = text_a
+        self.text_b = text_b
+        self.question = question
+        self.label = label
+
+    def __repr__(self):
+        return str(self.to_json_string())
+
+    def to_dict(self):
+        """Serializes this instance to a Python dictionary."""
+        output = copy.deepcopy(self.__dict__)
+        return output
+
+    def to_json_string(self):
+        """Serializes this instance to a JSON string."""
+        return json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n"
+
+class WSCInputExample(object):
+    """
+    A single training/test example for SuperGLUE WSC task.
+
+    Args:
+        guid: Unique id for the example.
+        text: string. The premise of the question.
+        span_1: Tuple, the index of the targeted word in word level and the target word in sent 1. 
+        span_2: Tuple, the index of the targeted word in word level and the target word in sent 2.
+        label: string. The label of the example. This should be
+            specified for train and dev examples, but not for test examples.
+    """
+
+    def __init__(self, guid, text, span_1, span_2, label):
+        self.guid = guid
+        self.text = text
+        self.span_1 = span_1
+        self.span_2 = span_2
+        self.label = label
+
+    def __repr__(self):
+        return str(self.to_json_string())
+
+    def to_dict(self):
+        """Serializes this instance to a Python dictionary."""
+        output = copy.deepcopy(self.__dict__)
+        return output
+
+    def to_json_string(self):
+        """Serializes this instance to a JSON string."""
+        return json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n"
+
+
+class WiCInputExample(object):
+    """
+    A single training/test example for SuperGLUE COPA task.
+
+    Args:
+        guid: Unique id for the example.
+        sent1: string. First sentence contains a word.
+        sent2: string. Second sentences contains the same word.
+        idxs1: tuple. The beginning and the ending digits of the word in sentence 1 (character level).
+        idxs2: tuple. The beginning and the ending digits of the word in sentence 2 (character level).
+        label: string. The label of the example indicates whether the meaning of the targeted 
+            word is consistence across both sentences. This should 
+            specified for train and dev examples, but not for test examples.
+    """
+
+    def __init__(self, guid, sent1, sent2, idxs1, idxs2, label):
+        self.guid = guid
+        self.sent1 = sent1
+        self.sent2 = sent2
+        self.idxs1 = idxs1
+        self.idxs2 = idxs2
         self.label = label
 
     def __repr__(self):
@@ -89,6 +193,41 @@ class InputFeatures(object):
         """Serializes this instance to a JSON string."""
         return json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n"
 
+class InputFeatures_w(object):
+    """
+    A single set of features of data for WSC and WiC from superGLUE.
+
+    Args:
+        input_ids: Indices of input sequence tokens in the vocabulary.
+        attention_mask: Mask to avoid performing attention on padding token indices.
+            Mask values selected in ``[0, 1]``:
+            Usually  ``1`` for tokens that are NOT MASKED, ``0`` for MASKED (padded) tokens.
+        token_type_ids: Segment token indices to indicate first and second portions of the inputs.
+        label: Label corresponding to the input
+    """
+
+    def __init__(self, input_ids, input_mask, segment_ids, span_1_mask, span_1_text,
+                span_2_mask, span_2_text, label):
+        self.input_ids = input_ids
+        self.input_mask = input_mask
+        self.segment_ids = segment_ids
+        self.span_1_mask = span_1_mask
+        self.span_1_text = span_1_text
+        self.span_2_mask = span_2_mask
+        self.span_2_text = span_2_text
+        self.label = label
+
+    def __repr__(self):
+        return str(self.to_json_string())
+
+    def to_dict(self):
+        """Serializes this instance to a Python dictionary."""
+        output = copy.deepcopy(self.__dict__)
+        return output
+
+    def to_json_string(self):
+        """Serializes this instance to a JSON string."""
+        return json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n"
 
 class DataProcessor(object):
     """Base class for data converters for sequence classification data sets."""
@@ -125,7 +264,19 @@ class DataProcessor(object):
         """Reads a tab separated value file."""
         with open(input_file, "r", encoding="utf-8-sig") as f:
             return list(csv.reader(f, delimiter="\t", quotechar=quotechar))
+    
+    @classmethod
+    def _read_json_to_list(self, input_file):
+        with open(input_file, ) as f:
+            df = pd.read_json(f, lines = True)
+        return df.values.tolist()
 
+    @classmethod
+    def _read_json_to_dict(self, input_file):
+        lines = []
+        for ln in open(input_file):
+            lines.append(json.loads(ln))
+        return lines
 
 class SingleSentenceClassificationProcessor(DataProcessor):
     """ Generic processor for a single sentence classification data set."""
