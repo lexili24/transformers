@@ -79,7 +79,7 @@ extras["dev"] = extras["testing"] + extras["quality"] + ["mecab-python3", "sciki
 
 setup(
     name="transformers",
-    version="2.5.1",
+    version="2.2.1",
     author="Thomas Wolf, Lysandre Debut, Victor Sanh, Julien Chaumond, Sam Shleifer, Google AI Language Team Authors, Open AI team Authors, Facebook AI Authors, Carnegie Mellon University Authors",
     author_email="thomas@huggingface.co",
     description="State-of-the-art Natural Language Processing for TensorFlow 2.0 and PyTorch",
@@ -91,7 +91,10 @@ setup(
     package_dir={"": "src"},
     packages=find_packages("src"),
     install_requires=[
-        "numpy",
+        "numpy==1.18",
+        "scipy >= 0.19.0",
+        "pandas",
+
         "tokenizers == 0.6.0",
         # accessing files from S3 directly
         "boto3",
