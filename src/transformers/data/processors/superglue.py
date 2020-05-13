@@ -49,7 +49,7 @@ def superglue_convert_examples_to_features(
                   or ``tf.data.Dataset`` containing the examples.
         tokenizer: Instance of a tokenizer that will tokenize the examples
         max_length: Maximum example length
-        task: GLUE task
+        task: SuperGLUE task
         label_list: List of labels. Can be obtained from the processor using the ``processor.get_labels()`` method
         output_mode: String indicating the output mode. Either ``regression`` or ``classification``
         pad_on_left: If set to ``True``, the examples will be padded on the left rather than on the right (default)
@@ -174,27 +174,40 @@ def superglue_convert_examples_to_features(
     def featurize_example_copa(examples = examples, processor = processor, tokenizer = tokenizer,
         mask_padding_with_zero = mask_padding_with_zero):
 
+                                # choice, question, premise 
         def _featurize_example(text_a, text_b, text_c, guid, cur_label=None, print_example=False,
                                 max_length = max_length, model_type = model_type,
                                 mask_padding_with_zero = mask_padding_with_zero):
+            '''
+            tokenize choice, question and premise. Choice and question have segment ids of 0, premise has segment ids of 1
+            :inputs:
+                text_a: first or second choice 
+                test_b: question
+                text_c: premise of the question
+                guid: example id
+            :params:
+                max_length 
+                model_type
+                mask_padding_with_zero: if mask padding with 0
+            '''
             tokens_a = tokenizer.tokenize(text_a)
             tokens_b = tokenizer.tokenize(text_b)
             tokens_c = tokenizer.tokenize(text_c)
             special_tokens_count = 6 if "roberta" in model_type else 4
             _truncate_seq_pair(tokens_a, tokens_c, max_length - special_tokens_count - len(tokens_b))
-            tokens = tokens_a + [tokenizer.sep_token]
+            tokens = tokens_a + [tokenizer.sep_token] # choice 
             if "roberta" in model_type:
                 tokens += [tokenizer.sep_token]
             segment_ids = [0] * len(tokens)
 
-            tokens += tokens_b + [tokenizer.sep_token]
-            segment_ids += [1] * (len(tokens_b) + 1)
+            tokens += tokens_b + [tokenizer.sep_token] # question 
+            segment_ids += [0] * (len(tokens_b) + 1)
             if "roberta" in model_type:
                 tokens += [tokenizer.sep_token]
-                segment_ids += [1]
+                segment_ids += [0]
 
             tokens += tokens_c + [tokenizer.sep_token]
-            segment_ids += [2] * (len(tokens_c) + 1)
+            segment_ids += [1] * (len(tokens_c) + 1) # premise
 
             tokens = [tokenizer.cls_token] + tokens
             segment_ids = [0] + segment_ids
@@ -234,8 +247,7 @@ def superglue_convert_examples_to_features(
                                  token_type_ids=segment_ids,
                                  label=label_id)
             
-        features_1 = []
-        features_2 = []
+        features = []
         for (ex_index, example) in enumerate(examples):
             len_examples = 0
             if is_tf_dataset:
@@ -247,19 +259,20 @@ def superglue_convert_examples_to_features(
             if ex_index % 10000 == 0:
                 logger.info("Writing example %d/%d" % (ex_index, len_examples))
 
-            features_1.append(_featurize_example(example.text_a,
+            features.append([_featurize_example(example.text_a,
                                         example.question,
                                         example.text_pre,
                                         cur_label=int(example.label == '0'),
                                         print_example=True,
-                                        guid = example.guid))
-            features_2.append(_featurize_example(example.text_b,
+                                        guid = example.guid),
+                            _featurize_example(example.text_b,
                                         example.question,
                                         example.text_pre,
                                         cur_label=int(example.label == '1'),
                                         print_example=True,
-                                        guid = example.guid))
-        return features_1, features_2
+                                        guid = example.guid) ])
+        # print('processed features', len(features))                 
+        return features
 
     def featurize_example_wsc(examples = examples, processor = processor, tokenizer = tokenizer, mask_padding_with_zero = mask_padding_with_zero):
 
@@ -526,14 +539,11 @@ def _truncate_seq_pair(tokens_a, tokens_b, max_length):
 def _digits_to_index(tokenizer, sent, idxs): 
     start, end = idxs
     word = sent[start:end]
-    words = re.split(r'\W+', sent)
+    words = sent.split(' ')
     #words = tokenizer.tokenize(sent)
-    try:
-        index = words.index(word)
-    except:
-        print('word', word)
-        print('sent', words)
-    return index, word 
+    for i, ind in enumerate(words):
+        if word in ind:
+            return i, word
 
 
 #### Helper funcs for WSC ##### 
